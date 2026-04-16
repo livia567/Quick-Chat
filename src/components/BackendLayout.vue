@@ -1,3 +1,26 @@
 <template>
-  <div>我是后台布局组件</div>
+  <div class="backend-layout">
+    <el-container>
+      <el-container>
+        <Sidebar />
+        <el-header>
+          <Navbar />
+        </el-header>
+        <el-main>
+          <router-view />
+        </el-main>
+      </el-container>
+    </el-container>
+  </div>
 </template>
+
+<script setup>
+import Sidebar from "./Sidebar.vue";
+import Navbar from "./Navbar.vue";
+</script>
+
+<style lang="scss" scoped>
+.backend-layout {
+  height: 100vh; //父盒子占满整个屏幕
+}
+</style>
