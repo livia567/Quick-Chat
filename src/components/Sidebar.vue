@@ -1,11 +1,6 @@
 <template>
   <el-aside width="264px">
-    <el-menu
-      default-active="2"
-      @open="handleOpen"
-      @close="handleClose"
-      class="menu-style"
-    >
+    <el-menu default-active="2" class="menu-style">
       <div class="brand">
         <el-image
           style="width: 50px; height: 50px; margin-right: 10px"
@@ -18,6 +13,7 @@
       </div>
 
       <el-menu-item
+        @click="selectMenu"
         v-for="item in router.options.routes[0].children"
         :key="item.path"
         :index="item.path"
@@ -35,8 +31,12 @@ const router = useRouter();
 console.log(router);
 
 const iconUrl = new URL("@/assets/images/机器人.png", import.meta.url);
-const handleOpen = () => {};
-const handleClose = () => {};
+
+const selectMenu = (key) => {
+  console.log(key);
+  const currentRoute = router.options.routes[0]; //父级路由
+  router.push(`${currentRoute.path}/${key.index}`);
+};
 </script>
 
 <style lang="scss" scoped>
