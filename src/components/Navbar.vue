@@ -10,7 +10,7 @@
 
     <!-- 右侧 -->
     <div class="flex-box">
-      <!-- 外层：下拉菜单容器  command="logout"：点击时传给 handleCommand 的值-->
+      <!-- 外层：下拉菜单容器-->
       <el-dropdown @command="handleCommand">
         <!-- 触发器：被点击后会展开菜单的东西 -->
         <div class="flex-box">
@@ -22,7 +22,7 @@
         </div>
         <!-- 下拉内容：菜单弹窗 -->
         <template #dropdown>
-          <!-- el-dropdown-menu：下拉菜单的内容 -->
+          <!-- el-dropdown-menu：下拉菜单的内容  command="logout"：点击时传给 handleCommand 的值 -->
           <el-dropdown-menu>
             <el-dropdown-item command="logout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
@@ -45,7 +45,7 @@ const handleCommand = (command) => {
 
 <style lang="scss" scoped>
 .navbar {
-  height: 64px;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between; /* 左右两端对齐（左边内容 | 右边内容） */

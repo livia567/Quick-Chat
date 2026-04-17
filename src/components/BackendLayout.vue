@@ -7,8 +7,8 @@
           <el-header>
             <Navbar />
           </el-header>
-          <el-main>
-            <router-view />
+          <el-main class="main-content">
+            <router-view class="content-container" />
           </el-main>
         </el-container>
       </el-container>
@@ -24,8 +24,18 @@ import Navbar from "./Navbar.vue";
 <style lang="scss" scoped>
 .backend-layout {
   height: 100vh; //父盒子占满整个屏幕
+  //使用 <el-header> 标签时，Element Plus 内部会渲染成：<header class="el-header">
+  //所以el-header是类名，要加.
+  .el-header {
+    height: 74px !important;
+  }
   .main-container {
     height: 100%; //子盒子占满父盒子（继承父盒子的高度）
+    .content-container {
+      padding: 20px;
+      background-color: #fff;
+      min-height: calc(100% - 74px);
+    }
   }
 }
 </style>
