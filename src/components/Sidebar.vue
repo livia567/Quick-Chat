@@ -8,7 +8,7 @@
     >
       <div class="brand">
         <el-image
-          style="width: 50px; height: 50px; margin-right: 10px"
+          :class="isCollapse ? 'collapsed' : 'brand-logo'"
           :src="iconUrl"
         ></el-image>
         <div v-show="!isCollapse" class="info-card">
@@ -63,11 +63,18 @@ const isCollapse = computed(() => useAdminStore().isCollapse);
 
   .brand {
     display: flex; /* 弹性布局，让内部元素排成一行 */
+    height: 52px;
     align-items: center; /* 垂直居中对齐 */
     justify-content: center; /* 水平居中对齐 */
     padding: 10px; /* 内边距10px */
     background-color: #fff; /* 白色背景 */
     border-bottom: 1px solid #e5e7ed; /* 底部灰色边框线 */
+
+    .brand-logo {
+      width: 50px;
+      height: 50px;
+      margin-right: 10px;
+    }
 
     .info-card {
       .brand-title {
@@ -79,6 +86,11 @@ const isCollapse = computed(() => useAdminStore().isCollapse);
       .sub-title {
         font-size: 14px;
         color: #6b7280;
+      }
+      // 折叠后居中
+      &.collapsed {
+        width: 50px;
+        height: 50px;
       }
     }
   }
