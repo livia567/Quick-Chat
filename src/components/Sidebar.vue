@@ -1,12 +1,17 @@
 <template>
-  <el-aside width="264px">
-    <el-menu default-active="2" class="menu-style">
+  <el-aside :width="isCollapse ? '64px' : '264px'">
+    <el-menu
+      :collapse="isCollapse"
+      :collapse-transition="false"
+      default-active="2"
+      class="menu-style"
+    >
       <div class="brand">
         <el-image
           style="width: 50px; height: 50px; margin-right: 10px"
           :src="iconUrl"
         ></el-image>
-        <div class="info-card">
+        <div v-show="!isCollapse" class="info-card">
           <h1 class="brand-title">心理健康AI助手</h1>
           <p class="sub-title">管理后台</p>
         </div>
@@ -26,17 +31,27 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { useRouter } from "vue-router";
+import { useAdminStore } from "@/stores/admin";
+
+//创建路由实例
 const router = useRouter();
 console.log(router);
 
-const iconUrl = new URL("@/assets/images/机器人.png", import.meta.url);
+//导入logo图片
+const iconUrl = new URL("@/assets/images/机器人.png", import.meta.url).href;
 
+//跳转菜单点击事件selectMenu
 const selectMenu = (key) => {
   console.log(key);
   const currentRoute = router.options.routes[0]; //父级路由
   router.push(`${currentRoute.path}/${key.index}`);
 };
+
+//判断是否折叠菜单
+//先调用useAdminStore()，拿到里面的属性isCollapse，用computed监听isCollapse的变化，最后返回isCollapse的值
+const isCollapse = computed(() => useAdminStore().isCollapse);
 </script>
 
 <style lang="scss" scoped>

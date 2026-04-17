@@ -2,7 +2,7 @@
   <div class="navbar">
     <!-- 左侧 -->
     <div class="flex-box">
-      <el-button>
+      <el-button @click="handleCollapse">
         <el-icon><Expand /></el-icon>
       </el-button>
       <p class="page-title">导航栏</p>
@@ -34,12 +34,17 @@
 
 <script setup>
 import { ref } from "vue";
+import { useAdminStore } from "@/stores/admin";
 
 const handleCommand = (command) => {
   console.log(command);
   if (command === "logout") {
     // 退出登录逻辑
   }
+};
+
+const handleCollapse = () => {
+  useAdminStore().toggleCollapse();
 };
 </script>
 
