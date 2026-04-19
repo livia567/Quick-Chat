@@ -57,8 +57,6 @@ import { login } from "@/api/admin";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
 
-const router = useRouter();
-
 const ruleFormRef = ref();
 
 const formData = ref({
@@ -73,6 +71,7 @@ const rules = ref({
 });
 
 //登录
+const router = useRouter();
 const submitForm = async (formEl) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
@@ -84,8 +83,13 @@ const submitForm = async (formEl) => {
           localStorage.setItem("token", data.token);
           //用户信息是一个对象，但是缓存只能存储字符串，所以需要转换为字符串
           localStorage.setItem("userInfo", JSON.stringify(data.userInfo));
-          //登录成功，跳转首页
-          router.push("/");
+          //根据用户角色决定跳转路径
+          if (data.userInfo.userType === 2) {
+            //跳转到管理员页面
+            router.push("/back/dashboard");
+          } else {
+            //跳转到用户页面
+          }
         } else {
           //登录失败，提示用户
           ElMessage.error(data.msg || "登录失败，请检查用户名和密码");
