@@ -53,6 +53,11 @@
 
 <script setup>
 import { ref } from "vue";
+import { login } from "@/api/admin";
+import { ElMessage } from "element-plus";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const ruleFormRef = ref();
 
@@ -72,7 +77,20 @@ const submitForm = async (formEl) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
     if (valid) {
-      console.log("校验通过");
+      login(formData.value).then((data) => {
+        //判断token是否存在
+        if (data.token) {
+          //保存token和用户信息，存到缓存里
+          localStorage.setItem("token", data.token);
+          //用户信息是一个对象，但是缓存只能存储字符串，所以需要转换为字符串
+          localStorage.setItem("userInfo", JSON.stringify(data.userInfo));
+          //登录成功，跳转首页
+          router.push("/");
+        } else {
+          //登录失败，提示用户
+          ElMessage.error(data.msg || "登录失败，请检查用户名和密码");
+        }
+      });
     } else {
       console.log("校验失败");
     }
