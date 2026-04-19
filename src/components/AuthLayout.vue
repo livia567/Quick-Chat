@@ -5,8 +5,7 @@
         <h2 class="title">心理AI助手</h2>
         <p class="text">
           这里没有评判，只有聆听<br />
-          在喧嚣的世界里，为你留出一方安静的心灵栖息地<br />
-          陪你找回内心的秩序与安宁
+          在喧嚣的世界里，为你留出一方安静的心灵栖息地
         </p>
         <div class="robot">
           <el-image style="width: 90px; height: 90px" :src="iconUrl"></el-image>
