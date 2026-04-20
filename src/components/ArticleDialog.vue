@@ -5,12 +5,22 @@
     width="50%"
     @close="handleClose"
   >
-    <h1>文章详情</h1>
+    <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">
+      <el-form-item label="文章标题" prop="title">
+        <el-input
+          v-model="formData.title"
+          placeholder="请输入文章标题"
+          maxlength="100"
+          show-word-limit
+          clearable
+        />
+      </el-form-item>
+    </el-form>
   </el-dialog>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, reactive } from "vue";
 
 //接收父组件传来的modelValue值，默认false，类型为Boolean
 const props = defineProps({
@@ -35,4 +45,22 @@ const dialogVisible = computed({
   },
 });
 const handleClose = () => {};
+
+//表单数据
+const formData = reactive({
+  title: "",
+  content: "",
+  coverImage: "",
+  categoryId: 0,
+  summary: "",
+  tags: "",
+  id: "",
+});
+
+const rules = reactive({
+  title: [
+    { required: true, message: "请输入文章标题", trigger: "blur" },
+    { max: 100, message: "文章标题最多100个字符", trigger: "blur" },
+  ],
+});
 </script>
