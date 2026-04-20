@@ -81,8 +81,10 @@
             </div>
             <!-- 图片上传后显示 -->
             <img v-else :src="imgUrl" alt="封面图片" class="cover-image" />
-            <el-button size="small" type="primary">点击上传</el-button>
           </el-upload>
+          <div v-if="imgUrl" class="cover-remove">
+            <el-button type="danger" @click="handleRemove">移除封面</el-button>
+          </div>
         </div>
       </el-form-item>
     </el-form>
@@ -92,6 +94,8 @@
 <script setup>
 import { ref, computed, reactive } from "vue";
 import { ElMessage } from "element-plus";
+import { uploadFile } from "@/api/admin";
+import { fileBaseUrl } from "@/config/index.js";
 
 //接收父组件传来的modelValue值，默认false，类型为Boolean
 const props = defineProps({
@@ -166,6 +170,7 @@ const imgUrl = ref("");
 const beforeUpload = (file) => {
   console.log(file);
   const isImage = file.type.startsWith("image/");
+  // file.size是字节，需要转换成MB
   const isLt5M = file.size / 1024 / 1024 < 5;
   if (!isImage) {
     ElMessage.error("请上传图片文件");
@@ -179,7 +184,25 @@ const beforeUpload = (file) => {
 };
 
 // 上传请求的方法
-const handleUploadRequest = () => {};
+const handleUploadRequest = async ({ file }) => {
+  //UUID生成
+  const businessId = crypto.randomUUID();
+  const fileRes = await uploadFile(file, {
+    businessId: businessId,
+  });
+  console.log(fileRes);
+
+  //拼接完整的图片地址=后端文件服务器地址+相对路径filePath
+  imgUrl.value = fileBaseUrl + fileRes.filePath;
+  //提交给后端的数据的是相对路径filePath
+  formData.coverImage = fileRes.filePath;
+};
+
+//移除封面
+const handleRemove = () => {
+  imgUrl.value = "";
+  formData.coverImage = "";
+};
 </script>
 
 <style scoped lang="scss">
@@ -192,5 +215,10 @@ const handleUploadRequest = () => {};
   justify-content: center;
   color: #8b949e;
   background-color: #f6f8fa;
+}
+.cover-image {
+  width: 200px;
+  height: 120px;
+  display: block;
 }
 </style>
