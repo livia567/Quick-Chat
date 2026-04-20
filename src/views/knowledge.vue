@@ -7,13 +7,58 @@
       </template>
     </PageHead>
     <TableSearch :formItem="formItem" @search="handleSearch"></TableSearch>
+    <el-table :data="tableData" style="width: 100%; margin-top: 25px">
+      <!-- 第一列：文章标题 -->
+      <el-table-column label="文章标题" fixed="left" width="250">
+        <!-- Element Plus 把当前行数据通过插槽传给你 用scope接收它 -->
+        <template #default="scope">
+          <div style="display: flex; align-items: center">
+            <el-icon><Timer /></el-icon>
+            <!-- scope.row 当前行数据 -->
+            <span>{{ scope.row.title }}</span>
+          </div>
+        </template>
+      </el-table-column>
+
+      <!-- 第二列：分类 -->
+      <el-table-column label="分类" width="200">
+        <template #default="scope">
+          <div style="display: flex; align-items: center">
+            <el-icon><Timer /></el-icon>
+            <span>{{ categoryMap[scope.row.categoryId] }}</span>
+          </div>
+        </template>
+      </el-table-column>
+
+      <!-- 第三四五列 -->
+      <el-table-column label="作者" prop="authorName" width="150" />
+      <el-table-column label="阅读量" prop="readCount" width="150" />
+      <el-table-column label="发布时间" prop="publishedAt" width="200" />
+
+      <!-- 第六列：操作 -->
+      <el-table-column label="操作" width="230" fixed="right">
+        <template #default="scope">
+          <el-button text type="primary">编辑</el-button>
+          <el-button
+            v-if="scope.row.status === 0 || scope.row.status === 2"
+            text
+            type="success"
+            >发布</el-button
+          >
+          <el-button v-if="scope.row.status === 1" text type="warning"
+            >下线</el-button
+          >
+          <el-button text type="danger">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
   </div>
 </template>
 
 <script setup>
 import PageHead from "@/components/PageHead.vue";
 import TableSearch from "@/components/TableSearch.vue";
-import { categoryTree } from "@/api/admin";
+import { categoryTree, articlePage } from "@/api/admin";
 import { ref, onMounted, reactive } from "vue";
 
 const formItem = [
@@ -42,17 +87,29 @@ const formItem = [
   },
 ];
 
+//分页参数
+const pagination = reactive({
+  currentPage: 1,
+  size: 10,
+  total: 0,
+});
+//列表数据
+const tableData = ref([]);
 //查询
-const handleSearch = (formData) => {
-  console.log(formData);
+const handleSearch = async (formData) => {
+  //合并分页参数和业务参数（query参数要求）
+  const params = {
+    ...pagination,
+    ...formData,
+  };
+  const { records, total } = await articlePage(params);
+  tableData.value = records;
 };
 
 //空对象，用来存 id → 分类名 的映射
 const categoryMap = reactive({});
-
 //空数组，用来存处理好的分类列表
 const categories = ref([]);
-
 onMounted(async () => {
   //data 就是后端返回的分类数组 长这样：
   //   [
@@ -70,5 +127,8 @@ onMounted(async () => {
   });
   //把处理好的分类列表塞进表单第二项（下拉框）的选项里，下拉框就有内容了
   formItem[1].options = categories.value;
+
+  //获取列表
+  handleSearch();
 });
 </script>
