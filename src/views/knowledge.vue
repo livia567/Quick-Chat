@@ -4,7 +4,7 @@
     <PageHead title="知识文章">
       <!-- 具名插槽，#是v-slot的简写，用于指定插槽的名称 -->
       <template #buttons>
-        <el-button type="primary">新增</el-button>
+        <el-button @click="dialogVisible = true" type="primary">新增</el-button>
       </template>
     </PageHead>
 
@@ -69,6 +69,9 @@
       :total="pagination.total"
       @change="handleChange"
     />
+
+    <!-- 文章详情弹窗 -->
+    <ArticleDialog v-model:modelValue="dialogVisible"></ArticleDialog>
   </div>
 </template>
 
@@ -77,6 +80,7 @@ import PageHead from "@/components/PageHead.vue";
 import TableSearch from "@/components/TableSearch.vue";
 import { categoryTree, articlePage } from "@/api/admin";
 import { ref, onMounted, reactive } from "vue";
+import ArticleDialog from "@/components/ArticleDialog.vue";
 
 //form表单检索框配置
 const formItem = [
@@ -158,6 +162,9 @@ const handleChange = (page) => {
   pagination.currentPage = page;
   handleSearch();
 };
+
+//新增和编辑弹窗是否显示
+const dialogVisible = ref(false);
 </script>
 
 <style scoped lang="scss">
