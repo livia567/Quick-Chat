@@ -25,7 +25,9 @@
         <template #default="scope">
           <div style="display: flex; align-items: center">
             <el-icon><Timer /></el-icon>
-            <span>{{ categoryMap[scope.row.categoryId] }}</span>
+            <span class="page-category">{{
+              categoryMap[scope.row.categoryId]
+            }}</span>
           </div>
         </template>
       </el-table-column>
@@ -136,5 +138,8 @@ onMounted(async () => {
 <style scoped lang="scss">
 .page-title {
   margin-left: 10px;
+}
+.page-category {
+  margin-left: 5px;
 }
 </style>
