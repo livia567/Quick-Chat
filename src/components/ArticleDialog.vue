@@ -6,6 +6,7 @@
     @close="handleClose"
   >
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">
+      <!-- 文章标题 -->
       <el-form-item label="文章标题" prop="title">
         <el-input
           v-model="formData.title"
@@ -15,18 +16,92 @@
           clearable
         />
       </el-form-item>
+
+      <!-- 所属分类 -->
+      <el-form-item label="所属分类" prop="categoryId">
+        <el-select v-model="formData.categoryId" placeholder="请选择分类">
+          <el-option
+            v-for="item in categories"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+
+      <!-- 文章摘要 -->
+      <el-form-item label="文章摘要" prop="summary">
+        <el-input
+          type="textarea"
+          v-model="formData.summary"
+          placeholder="请输入文章摘要（可选）"
+          maxlength="1000"
+          show-word-limit
+          :rows="3"
+          clearable
+        />
+      </el-form-item>
+
+      <!-- 标签 -->
+      <el-form-item label="标签" prop="tags">
+        <el-select
+          v-model="formData.tagArray"
+          placeholder="请输入文章标签（可多选）"
+          multiple
+          filterable
+          allow-create
+          width="100%"
+        >
+          <el-option
+            v-for="tag in commonTags"
+            :key="tag"
+            :label="tag"
+            :value="tag"
+          />
+        </el-select>
+      </el-form-item>
+
+      <!-- 上传封面 -->
+      <el-form-item label="封面图片">
+        <div class="cover-upload">
+          <!-- action后跟要传给后端的地址，但是这里上传之后还要校验，所以就先写# -->
+          <!-- before-upload是上传前要做的校验,返回为true才会触发下一个方法（请求接口方法）-->
+          <!-- handleUploadRequest:上传请求的方法 -->
+          <el-upload
+            class="avatar-uploader"
+            action="#"
+            :before-upload="beforeUpload"
+            :http-request="handleUploadRequest"
+            :show-file-list="false"
+            accept="image/*"
+          >
+            <!-- 图片未上传时 显示-->
+            <div v-if="!imgUrl" class="cover-placeholder">
+              <p>点击上传封面</p>
+            </div>
+            <!-- 图片上传后显示 -->
+            <img v-else :src="imgUrl" alt="封面图片" class="cover-image" />
+            <el-button size="small" type="primary">点击上传</el-button>
+          </el-upload>
+        </div>
+      </el-form-item>
     </el-form>
   </el-dialog>
 </template>
 
 <script setup>
 import { ref, computed, reactive } from "vue";
+import { ElMessage } from "element-plus";
 
 //接收父组件传来的modelValue值，默认false，类型为Boolean
 const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
+  },
+  categories: {
+    type: Array,
+    default: () => [],
   },
 });
 
@@ -51,16 +126,71 @@ const formData = reactive({
   title: "",
   content: "",
   coverImage: "",
-  categoryId: 0,
+  categoryId: 1,
   summary: "",
   tags: "",
   id: "",
 });
 
+// 表单校验规则
 const rules = reactive({
   title: [
     { required: true, message: "请输入文章标题", trigger: "blur" },
     { max: 100, message: "文章标题最多100个字符", trigger: "blur" },
   ],
+  categoryId: [{ required: true, message: "请选择分类", trigger: "change" }],
+  summary: [{ max: 1000, message: "文章摘要最多1000个字符", trigger: "blur" }],
 });
+
+//标签选项
+const commonTags = [
+  "情绪管理",
+  "焦虑",
+  "抑郁",
+  "压力",
+  "睡眠",
+  "冥想",
+  "正念",
+  "放松",
+  "心理健康",
+  "自我成长",
+  "人际关系",
+  "工作压力",
+  "学习方法",
+  "生活技巧",
+];
+
+// 上传图片
+const imgUrl = ref("");
+// 上传前做的校验
+const beforeUpload = (file) => {
+  console.log(file);
+  const isImage = file.type.startsWith("image/");
+  const isLt5M = file.size / 1024 / 1024 < 5;
+  if (!isImage) {
+    ElMessage.error("请上传图片文件");
+    return false;
+  }
+  if (!isLt5M) {
+    ElMessage.error("上传的封面图片大小不能超过5MB");
+    return false;
+  }
+  return true;
+};
+
+// 上传请求的方法
+const handleUploadRequest = () => {};
 </script>
+
+<style scoped lang="scss">
+.cover-placeholder {
+  width: 200px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #8b949e;
+  background-color: #f6f8fa;
+}
+</style>

@@ -71,7 +71,10 @@
     />
 
     <!-- 文章详情弹窗 -->
-    <ArticleDialog v-model:modelValue="dialogVisible"></ArticleDialog>
+    <ArticleDialog
+      v-model:modelValue="dialogVisible"
+      :categories="categories"
+    ></ArticleDialog>
   </div>
 </template>
 
@@ -149,6 +152,7 @@ onMounted(async () => {
       value: item.id,
     };
   });
+  console.log(categories.value);
   //把处理好的分类列表塞进表单第二项（下拉框）的选项里，下拉框就有内容了
   formItem[1].options = categories.value;
 
