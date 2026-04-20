@@ -13,9 +13,9 @@
         <!-- Element Plus 把当前行数据通过插槽传给你 用scope接收它 -->
         <template #default="scope">
           <div style="display: flex; align-items: center">
-            <el-icon><Timer /></el-icon>
+            <el-icon><Document /></el-icon>
             <!-- scope.row 当前行数据 -->
-            <span>{{ scope.row.title }}</span>
+            <span class="page-title">{{ scope.row.title }}</span>
           </div>
         </template>
       </el-table-column>
@@ -132,3 +132,9 @@ onMounted(async () => {
   handleSearch();
 });
 </script>
+
+<style scoped lang="scss">
+.page-title {
+  margin-left: 10px;
+}
+</style>
