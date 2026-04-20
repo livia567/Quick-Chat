@@ -1,16 +1,21 @@
 <template>
   <div>
+    <!-- 页面标题 -->
     <PageHead title="知识文章">
       <!-- 具名插槽，#是v-slot的简写，用于指定插槽的名称 -->
       <template #buttons>
         <el-button type="primary">新增</el-button>
       </template>
     </PageHead>
+
+    <!-- form表单检索框 -->
     <TableSearch :formItem="formItem" @search="handleSearch"></TableSearch>
+
+    <!-- table列表 -->
     <el-table :data="tableData" style="width: 100%; margin-top: 25px">
       <!-- 第一列：文章标题 -->
       <el-table-column label="文章标题" fixed="left" width="250">
-        <!-- Element Plus 把当前行数据通过插槽传给你 用scope接收它 -->
+        <!-- Element Plus 把当前行数据通过插槽传给我 用scope接收它 -->
         <template #default="scope">
           <div style="display: flex; align-items: center">
             <el-icon><Document /></el-icon>
@@ -54,6 +59,16 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
+    <!-- @change是Element Plus的内置事件，翻页或改变每页条数时自动触发 -->
+    <el-pagination
+      style="margin-top: 20px"
+      :page-size="pagination.size"
+      layout="prev, pager, next"
+      :total="pagination.total"
+      @change="handleChange"
+    />
   </div>
 </template>
 
@@ -63,6 +78,7 @@ import TableSearch from "@/components/TableSearch.vue";
 import { categoryTree, articlePage } from "@/api/admin";
 import { ref, onMounted, reactive } from "vue";
 
+//form表单检索框配置
 const formItem = [
   {
     comp: "input",
@@ -97,7 +113,7 @@ const pagination = reactive({
 });
 //列表数据
 const tableData = ref([]);
-//查询
+//handleSearch获取列表数据
 const handleSearch = async (formData) => {
   //合并分页参数和业务参数（query参数要求）
   const params = {
@@ -106,6 +122,8 @@ const handleSearch = async (formData) => {
   };
   const { records, total } = await articlePage(params);
   tableData.value = records;
+  //把后端返回的total赋值给pagination.total
+  pagination.total = total;
 };
 
 //空对象，用来存 id → 分类名 的映射
@@ -133,6 +151,13 @@ onMounted(async () => {
   //获取列表
   handleSearch();
 });
+
+//分页参数改变时触发
+//page 参数是Element Plus自动传的当前页码
+const handleChange = (page) => {
+  pagination.currentPage = page;
+  handleSearch();
+};
 </script>
 
 <style scoped lang="scss">
