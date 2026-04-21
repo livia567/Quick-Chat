@@ -127,10 +127,9 @@
 <script setup>
 import { ref, computed, reactive, nextTick, watch } from "vue";
 import { ElMessage } from "element-plus";
-import { uploadFile } from "@/api/admin";
+import { uploadFile, updateArticle, createArticle } from "@/api/admin";
 import { fileBaseUrl } from "@/config/index.js";
 import RichTextEditor from "./RichTextEditor.vue";
-import { createArticle } from "@/api/admin.js";
 
 //接收父组件传来的modelValue值，默认false，类型为Boolean
 const props = defineProps({
@@ -301,12 +300,23 @@ const handleSubmit = () => {
     };
     delete submitData.tagArray;
 
-    createArticle(submitData).then((res) => {
-      loading.value = false;
-      ElMessage.success("创建成功");
-      handleClose();
-      emit("success");
-    });
+    if (!isEdit.value) {
+      //新增
+      submitData.id = businessId.value;
+      createArticle(submitData).then((res) => {
+        loading.value = false;
+        ElMessage.success("创建成功");
+        handleClose();
+        emit("success");
+      });
+    } else {
+      updateArticle(props.article.id, submitData).then((res) => {
+        loading.value = false;
+        ElMessage.success("更新成功");
+        handleClose();
+        emit("success");
+      });
+    }
   });
 };
 

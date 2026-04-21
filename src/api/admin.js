@@ -38,3 +38,8 @@ export function createArticle(data) {
 export function getArticleDetail(id) {
   return service.get(`/knowledge/article/${id}`);
 }
+
+//更新知识文章
+export function updateArticle(id, data) {
+  return service.put(`/knowledge/article/${id}`, data);
+}

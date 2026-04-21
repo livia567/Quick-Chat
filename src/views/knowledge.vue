@@ -176,6 +176,9 @@ const handleChange = (page) => {
 const dialogVisible = ref(false);
 //新增
 const handleSuccess = () => {
+  //关闭弹窗
+  dialogVisible.value = false;
+  //刷新列表
   handleSearch();
 };
 //编辑
