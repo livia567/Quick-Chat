@@ -4,7 +4,7 @@
     <PageHead title="知识文章">
       <!-- 具名插槽，#是v-slot的简写，用于指定插槽的名称 -->
       <template #buttons>
-        <el-button @click="dialogVisible = true" type="primary">新增</el-button>
+        <el-button @click="handleEdit({})" type="primary">新增</el-button>
       </template>
     </PageHead>
 
@@ -45,7 +45,9 @@
       <!-- 第六列：操作 -->
       <el-table-column label="操作" width="230" fixed="right">
         <template #default="scope">
-          <el-button text type="primary">编辑</el-button>
+          <el-button @click="handleEdit(scope.row)" text type="primary"
+            >编辑</el-button
+          >
           <el-button
             v-if="scope.row.status === 0 || scope.row.status === 2"
             text
@@ -75,6 +77,7 @@
       v-model:modelValue="dialogVisible"
       :categories="categories"
       @success="handleSuccess"
+      :article="currentArticle"
     ></ArticleDialog>
   </div>
 </template>
@@ -85,6 +88,7 @@ import TableSearch from "@/components/TableSearch.vue";
 import { categoryTree, articlePage } from "@/api/admin";
 import { ref, onMounted, reactive } from "vue";
 import ArticleDialog from "@/components/ArticleDialog.vue";
+import { getArticleDetail } from "@/api/admin";
 
 //form表单检索框配置
 const formItem = [
@@ -134,10 +138,6 @@ const handleSearch = async (formData) => {
   pagination.total = total;
 };
 
-const handleSuccess = () => {
-  handleSearch();
-};
-
 //空对象，用来存 id → 分类名 的映射
 const categoryMap = reactive({});
 //空数组，用来存处理好的分类列表
@@ -174,6 +174,26 @@ const handleChange = (page) => {
 
 //新增和编辑弹窗是否显示
 const dialogVisible = ref(false);
+//新增
+const handleSuccess = () => {
+  handleSearch();
+};
+//编辑
+const currentArticle = ref(null);
+const handleEdit = (row) => {
+  if (!row.id) {
+    //新增
+    currentArticle.value = null;
+    dialogVisible.value = true;
+  } else {
+    //编辑
+    getArticleDetail(row.id).then((res) => {
+      console.log(res);
+      currentArticle.value = res;
+      dialogVisible.value = true;
+    });
+  }
+};
 </script>
 
 <style scoped lang="scss">

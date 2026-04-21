@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="文章详情"
+    :title="isEdit ? '编辑文章' : '新增文章'"
     v-model="dialogVisible"
     width="50%"
     @close="handleClose"
@@ -117,9 +117,9 @@
       }}</el-button>
       <el-button @click="handleClose">取消</el-button>
       <!-- 当loading.value = true时，按钮会显示转圈动画，同时自动禁用点击，防止用户重复提交 -->
-      <el-button type="primary" @click="handleSubmit" :loading="loading"
-        >创建文章</el-button
-      >
+      <el-button type="primary" @click="handleSubmit" :loading="loading">{{
+        isEdit ? "更新文章" : "创建文章"
+      }}</el-button>
     </template>
   </el-dialog>
 </template>
@@ -141,6 +141,10 @@ const props = defineProps({
   categories: {
     type: Array,
     default: () => [],
+  },
+  article: {
+    type: Object,
+    default: null,
   },
 });
 
@@ -295,6 +299,11 @@ const handleSubmit = () => {
     });
   });
 };
+
+// 判断是否有id，有id说明是编辑场景，否则是新增场景
+//两个！！代表转为布尔值
+//父组件传了article（编辑场景）→ isEdit 是 true（有id）
+const isEdit = computed(() => !!props.article?.id);
 </script>
 
 <style scoped lang="scss">
