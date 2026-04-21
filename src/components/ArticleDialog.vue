@@ -5,6 +5,8 @@
     width="50%"
     @close="handleClose"
   >
+    <!-- 会在组件挂载完成后，把这个el-form的实例自动塞进 formRef.value 里 -->
+    <!-- 可以通过 formRef.value拿到这个表单实例，调用它的相关方法 -->
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">
       <!-- 文章标题 -->
       <el-form-item label="文章标题" prop="title">
@@ -100,6 +102,25 @@
         />
       </el-form-item>
     </el-form>
+
+    <!-- 预览效果 -->
+    <div v-if="btnPreview">
+      <h3>内容预览</h3>
+      <!-- formData.content 是html格式，使用v-html指令渲染为HTML元素 -->
+      <div v-html="formData.content"></div>
+    </div>
+
+    <!-- 底部按钮（不在表单里） -->
+    <template #footer>
+      <el-button @click="btnPreview = !btnPreview">{{
+        btnPreview ? "关闭预览" : "预览效果"
+      }}</el-button>
+      <el-button @click="handleClose">取消</el-button>
+      <!-- 当loading.value = true时，按钮会显示转圈动画，同时自动禁用点击，防止用户重复提交 -->
+      <el-button type="primary" @click="handleSubmit" :loading="loading"
+        >创建文章</el-button
+      >
+    </template>
   </el-dialog>
 </template>
 
@@ -109,6 +130,7 @@ import { ElMessage } from "element-plus";
 import { uploadFile } from "@/api/admin";
 import { fileBaseUrl } from "@/config/index.js";
 import RichTextEditor from "./RichTextEditor.vue";
+import { createArticle } from "@/api/admin.js";
 
 //接收父组件传来的modelValue值，默认false，类型为Boolean
 const props = defineProps({
@@ -123,7 +145,7 @@ const props = defineProps({
 });
 
 //声明可以向父组件发事件，用于更新父组件的modelValue值
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "success"]);
 
 //子组件自己不能直接改 props，所以用 computed 包一层：
 const dialogVisible = computed({
@@ -136,7 +158,9 @@ const dialogVisible = computed({
     emit("update:modelValue", val);
   },
 });
-const handleClose = () => {};
+const handleClose = () => {
+  dialogVisible.value = false;
+};
 
 //表单数据
 const formData = reactive({
@@ -152,11 +176,16 @@ const formData = reactive({
 // 表单校验规则
 const rules = reactive({
   title: [
+    // required: true 表示必填项
     { required: true, message: "请输入文章标题", trigger: "blur" },
     { max: 100, message: "文章标题最多100个字符", trigger: "blur" },
   ],
   categoryId: [{ required: true, message: "请选择分类", trigger: "change" }],
   summary: [{ max: 1000, message: "文章摘要最多1000个字符", trigger: "blur" }],
+  content: [
+    { required: true, message: "请输入文章内容", trigger: "blur" },
+    { max: 10000, message: "文章内容最多10000个字符", trigger: "blur" },
+  ],
 });
 
 //标签选项
@@ -224,7 +253,6 @@ const handleContentChange = (data) => {
 };
 //editorInstance存储富文本实例
 const editorInstance = ref(null);
-
 //富文本编辑器初始化完成时会被调用，editor是组件自动传进来的编辑器实例
 const handleEditorCreated = (editor) => {
   //把编辑器实例存进editorInstance.value，方便后续在其他地方调用编辑器的方法
@@ -239,6 +267,33 @@ const handleEditorCreated = (editor) => {
       //新增文章 →formData.content是空的 →if 不成立 →编辑器空白，用户自己输入
     });
   }
+};
+
+//预览效果是否显示的变量
+const btnPreview = ref(false);
+
+//提交
+const formRef = ref();
+const loading = ref(false);
+const handleSubmit = () => {
+  formRef.value.validate((valid, fields) => {
+    if (valid) {
+      loading.value = true;
+    }
+    console.log(formData);
+    const submitData = {
+      ...formData,
+      tags: (formData.tagArray || []).join(","),
+    };
+    delete submitData.tagArray;
+
+    createArticle(submitData).then((res) => {
+      loading.value = false;
+      ElMessage.success("创建成功");
+      handleClose();
+      emit("success");
+    });
+  });
 };
 </script>
 

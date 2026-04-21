@@ -40,7 +40,7 @@
       <!-- 第三四五列 -->
       <el-table-column label="作者" prop="authorName" width="150" />
       <el-table-column label="阅读量" prop="readCount" width="150" />
-      <el-table-column label="发布时间" prop="publishedAt" width="200" />
+      <el-table-column label="发布时间" prop="updatedAt" width="200" />
 
       <!-- 第六列：操作 -->
       <el-table-column label="操作" width="230" fixed="right">
@@ -74,6 +74,7 @@
     <ArticleDialog
       v-model:modelValue="dialogVisible"
       :categories="categories"
+      @success="handleSuccess"
     ></ArticleDialog>
   </div>
 </template>
@@ -131,6 +132,10 @@ const handleSearch = async (formData) => {
   tableData.value = records;
   //把后端返回的total赋值给pagination.total
   pagination.total = total;
+};
+
+const handleSuccess = () => {
+  handleSearch();
 };
 
 //空对象，用来存 id → 分类名 的映射
