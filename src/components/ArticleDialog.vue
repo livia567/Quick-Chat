@@ -125,7 +125,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, nextTick } from "vue";
+import { ref, computed, reactive, nextTick, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { uploadFile } from "@/api/admin";
 import { fileBaseUrl } from "@/config/index.js";
@@ -163,7 +163,15 @@ const dialogVisible = computed({
   },
 });
 const handleClose = () => {
-  dialogVisible.value = false;
+  //重置表单,否则再次打开弹窗时，表单数据会保留
+  formRef.value.resetFields();
+  //重置businessId
+  businessId.value = null;
+  //重置标签
+  formData.tagArray = [];
+  //重置封面图片和数据
+  handleRemove();
+  emit("update:modelValue", false);
 };
 
 //表单数据
@@ -171,7 +179,7 @@ const formData = reactive({
   title: "",
   content: "",
   coverImage: "",
-  categoryId: 1,
+  categoryId: "",
   summary: "",
   tags: "",
   id: "",
@@ -229,12 +237,14 @@ const beforeUpload = (file) => {
   return true;
 };
 
+//图片唯一标识
+const businessId = ref(null);
 // 上传请求的方法
 const handleUploadRequest = async ({ file }) => {
   //UUID生成
-  const businessId = crypto.randomUUID();
+  businessId.value = crypto.randomUUID();
   const fileRes = await uploadFile(file, {
-    businessId: businessId,
+    businessId: businessId.value,
   });
   console.log(fileRes);
 
@@ -267,7 +277,7 @@ const handleEditorCreated = (editor) => {
     nextTick(() => {
       //调用编辑器的setContent方法，把formData.content（旧数据的 HTML）塞进编辑器
       //这样进入编辑页面时编辑器里就能显示已有内容，而不是空白。
-      editor.setContent(formData.content);
+      editor.setHtml(formData.content);
       //新增文章 →formData.content是空的 →if 不成立 →编辑器空白，用户自己输入
     });
   }
@@ -304,6 +314,23 @@ const handleSubmit = () => {
 //两个！！代表转为布尔值
 //父组件传了article（编辑场景）→ isEdit 是 true（有id）
 const isEdit = computed(() => !!props.article?.id);
+
+//监听编辑数据
+watch(
+  () => props.article,
+  (newVal) => {
+    if (newVal) {
+      nextTick(() => {
+        //直接赋值会丢失响应式，所以用Object.assign()合并
+        Object.assign(formData, newVal);
+        //使用现有ID
+        businessId.value = newVal.id;
+        //封面Url
+        imgUrl.value = fileBaseUrl + newVal.coverImage;
+      });
+    }
+  },
+);
 </script>
 
 <style scoped lang="scss">
