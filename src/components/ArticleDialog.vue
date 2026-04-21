@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from "vue";
+import { ref, computed, reactive, nextTick } from "vue";
 import { ElMessage } from "element-plus";
 import { uploadFile } from "@/api/admin";
 import { fileBaseUrl } from "@/config/index.js";
@@ -218,9 +218,28 @@ const handleRemove = () => {
 };
 
 //富文本内容改变时触发
-const handleContentChange = () => {};
-//富文本编辑器创建时触发
-const handleEditorCreated = () => {};
+const handleContentChange = (data) => {
+  console.log(data, "富文本内容");
+  formData.content = data.html;
+};
+//editorInstance存储富文本实例
+const editorInstance = ref(null);
+
+//富文本编辑器初始化完成时会被调用，editor是组件自动传进来的编辑器实例
+const handleEditorCreated = (editor) => {
+  //把编辑器实例存进editorInstance.value，方便后续在其他地方调用编辑器的方法
+  editorInstance.value = editor;
+  //formData.content有值（说明是编辑场景，已有旧数据）&& editor存在（编辑器确实创建成功了）
+  if (formData.content && editor) {
+    //nextTick 等Vue把DOM更新完再执行里面的代码（编辑器实例创建好 ≠ 编辑器DOM渲染好）
+    nextTick(() => {
+      //调用编辑器的setContent方法，把formData.content（旧数据的 HTML）塞进编辑器
+      //这样进入编辑页面时编辑器里就能显示已有内容，而不是空白。
+      editor.setContent(formData.content);
+      //新增文章 →formData.content是空的 →if 不成立 →编辑器空白，用户自己输入
+    });
+  }
+};
 </script>
 
 <style scoped lang="scss">
