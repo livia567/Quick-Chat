@@ -54,6 +54,12 @@ export function deleteArticle(id) {
   return service.delete(`/knowledge/article/${id}`);
 }
 
+//获取咨询记录列表
 export function getConsultationPage(params) {
   return service.get("/psychological-chat/sessions", { params });
+}
+
+//获取咨询会话详情
+export function getSessionDetail(sessionId) {
+  return service.get(`/psychological-chat/sessions/${sessionId}/messages`);
 }
