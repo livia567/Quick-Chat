@@ -161,7 +161,7 @@
 
 <script setup>
 import { getAnalyticsOverview } from "@/api/admin";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, onUnmounted } from "vue";
 import * as echarts from "echarts";
 
 //初始化图表（入口函数）
@@ -591,6 +591,8 @@ const iconUrl2 = new URL("@/assets/images/like.png", import.meta.url).href;
 const iconUrl3 = new URL("@/assets/images/comments.png", import.meta.url).href;
 const iconUrl4 = new URL("@/assets/images/smile.png", import.meta.url).href;
 
+//声明变量，用来存储ResizeObserver实例
+let resizeObserver = null;
 //接收后端返回的综合数据
 const aiData = ref({});
 onMounted(() => {
@@ -600,6 +602,36 @@ onMounted(() => {
     //初始化图表
     initChart();
   });
+
+  // 创建ResizeObserver，监听图表容器的尺寸变化
+  //ResizeObserver是浏览器自带的一个API，专门用来监听DOM元素的尺寸变化
+  resizeObserver = new ResizeObserver(() => {
+    //重新调整图表
+    emotionChart?.resize();
+    consultationChart?.resize();
+    userActivityChart?.resize();
+  });
+
+  // 监听图表所在的DOM容器
+  if (emotionChartRef.value) {
+    resizeObserver.observe(emotionChartRef.value);
+  }
+  if (consultationChartRef.value) {
+    resizeObserver.observe(consultationChartRef.value);
+  }
+  if (userActivityChartRef.value) {
+    resizeObserver.observe(userActivityChartRef.value);
+  }
+});
+
+onUnmounted(() => {
+  // 断开观察
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
+  emotionChart?.dispose();
+  consultationChart?.dispose();
+  userActivityChart?.dispose();
 });
 </script>
 
