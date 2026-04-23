@@ -84,6 +84,7 @@
       </el-col>
     </el-row>
 
+    <!-- 第二行2个图表 -->
     <el-row :gutter="24" style="margin-top: 20px">
       <el-col :span="12">
         <!-- width: 100%是在珊格内的100%，即一半的宽度 -->
@@ -100,6 +101,60 @@
           </div>
         </el-card>
       </el-col>
+
+      <!-- 第二行第二个图表 -->
+      <el-col :span="12">
+        <el-card style="width: 100%">
+          <!-- 用具名插槽的方式写卡片标题 -->
+          <template #header>
+            <div class="card-header">咨询会话统计</div>
+          </template>
+          <div class="chart-content">
+            <div class="consultation-stats">
+              <div class="stat-item">
+                <div class="stat-label">总会话数</div>
+                <div class="stat-value">
+                  {{ aiData.consultationStats?.totalSessions }}
+                </div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">平均时长</div>
+                <div class="stat-value">
+                  {{ aiData.consultationStats?.avgDurationMinutes }} 分钟
+                </div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">活跃用户</div>
+                <div class="stat-value">
+                  {{ aiData.systemOverview?.activeUsers }}
+                </div>
+              </div>
+            </div>
+            <!-- 图表内容 -->
+            <div
+              ref="consultationChartRef"
+              style="width: 100%; height: 260px"
+            ></div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 第三行1个图表 -->
+    <el-row style="margin-top: 20px">
+      <el-card style="width: 100%">
+        <!-- 用具名插槽的方式写卡片标题 -->
+        <template #header>
+          <div class="card-header">用户活跃度趋势</div>
+        </template>
+        <div class="chart-content">
+          <!-- 图表内容 -->
+          <div
+            ref="userActivityChartRef"
+            style="width: 100%; height: 300px"
+          ></div>
+        </div>
+      </el-card>
     </el-row>
   </div>
 </template>
@@ -109,13 +164,20 @@ import { getAnalyticsOverview } from "@/api/admin";
 import { onMounted, ref } from "vue";
 import * as echarts from "echarts";
 
+//初始化图表（入口函数）
+const initChart = () => {
+  //初始化情绪趋势图表
+  initEmotionChart();
+  //初始化咨询会话统计图表
+  initConsultationChart();
+  //初始化用户活跃度趋势图表
+  initUserActivityChart();
+};
+
+//情绪趋势图表
 //普通变量 ECharts实例对象，用来操作图表（更新、销毁等）
 let emotionChart = null;
 const emotionChartRef = ref(null);
-//初始化图表（入口函数）
-const initChart = () => {
-  initEmotionChart();
-};
 //初始化情绪趋势图表函数
 const initEmotionChart = () => {
   //在组件挂载到页面(onMounted)时，Vue把DOM放进浏览器
@@ -250,6 +312,277 @@ const initEmotionChart = () => {
 
   //设置图表项(把option配置项传给图表实例)
   emotionChart.setOption(option);
+};
+
+//咨询会话统计图表
+//普通变量 ECharts实例对象，用来操作图表（更新、销毁等）
+let consultationChart = null;
+//接受DOM元素（div）
+const consultationChartRef = ref(null);
+//初始化咨询会话统计图表函数
+const initConsultationChart = () => {
+  if (!consultationChartRef.value) return;
+  //销毁现有图表
+  if (consultationChart) {
+    consultationChart.dispose();
+  }
+  //创建echarts实例
+  consultationChart = new echarts.init(consultationChartRef.value);
+  //获取咨询会话统计数据
+  const dailyTrend = aiData.value?.consultationStats.dailyTrend || [];
+  const option = {
+    title: {
+      text: "咨询活动统计",
+      textStyle: {
+        fontSize: 16,
+        fontWeight: 600,
+        color: "#2d3436",
+      },
+      left: "center",
+      top: 10,
+    },
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      borderColor: "#fab1a0",
+      borderWidth: 1,
+      textStyle: {
+        color: "#2d3436",
+      },
+    },
+    legend: {
+      data: ["会话数量", "参与用户数"],
+      top: 40,
+      textStyle: {
+        color: "#636e72",
+      },
+    },
+    grid: {
+      left: "3%",
+      right: "4%",
+      bottom: "3%",
+      top: 80,
+      containLabel: true,
+    },
+    xAxis: {
+      type: "category",
+      data: dailyTrend.map((item) => item.date),
+      axisLine: {
+        lineStyle: {
+          color: "rgba(244, 162, 97, 0.3)",
+        },
+      },
+      axisLabel: {
+        color: "#636e72",
+      },
+    },
+    yAxis: {
+      type: "value",
+      axisLabel: {
+        color: "#636e72",
+      },
+      axisLine: {
+        lineStyle: {
+          color: "rgba(244, 162, 97, 0.3)",
+        },
+      },
+      splitLine: {
+        lineStyle: {
+          color: "rgba(244, 162, 97, 0.1)",
+        },
+      },
+    },
+    series: [
+      {
+        name: "会话数量",
+        type: "bar",
+        data: dailyTrend.map((item) => item.sessionCount),
+        itemStyle: {
+          color: {
+            type: "linear",
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: "#74b9ff" },
+              { offset: 1, color: "#0984e3" },
+            ],
+          },
+        },
+        barWidth: "40%",
+      },
+      {
+        name: "参与用户数",
+        type: "bar",
+        data: dailyTrend.map((item) => item.userCount),
+        itemStyle: {
+          color: {
+            type: "linear",
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: "#fdcb6e" },
+              { offset: 1, color: "#f39c12" },
+            ],
+          },
+        },
+        barWidth: "40%",
+      },
+    ],
+  };
+  consultationChart.setOption(option);
+};
+
+//用户活跃度趋势图表
+//普通变量 ECharts实例对象，用来操作图表（更新、销毁等）
+let userActivityChart = null;
+//接受DOM元素（div）
+const userActivityChartRef = ref(null);
+//初始化用户活跃度趋势图表函数
+const initUserActivityChart = () => {
+  if (!userActivityChartRef.value) return;
+  //销毁现有图表
+  if (userActivityChart) {
+    userActivityChart.dispose();
+  }
+  //创建echarts实例
+  userActivityChart = new echarts.init(userActivityChartRef.value);
+  //获取用户活跃度趋势数据
+  const activityData = aiData.value?.userActivity || [];
+  const option = {
+    title: {
+      text: "用户活跃度趋势",
+      textStyle: {
+        fontSize: 16,
+        fontWeight: 600,
+        color: "#2d3436",
+      },
+      left: "center",
+      top: 10,
+    },
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      borderColor: "#fab1a0",
+      borderWidth: 1,
+      textStyle: {
+        color: "#2d3436",
+      },
+    },
+    legend: {
+      data: ["活跃用户", "新增用户", "日记用户", "咨询用户"],
+      top: 40,
+      textStyle: {
+        color: "#636e72",
+      },
+    },
+    grid: {
+      left: "3%",
+      right: "4%",
+      bottom: "3%",
+      top: 80,
+      containLabel: true,
+    },
+    xAxis: {
+      type: "category",
+      data: activityData.map((item) => item.date),
+      axisLine: {
+        lineStyle: {
+          color: "rgba(244, 162, 97, 0.3)",
+        },
+      },
+      axisLabel: {
+        color: "#636e72",
+      },
+    },
+    yAxis: {
+      type: "value",
+      axisLabel: {
+        color: "#636e72",
+      },
+      axisLine: {
+        lineStyle: {
+          color: "rgba(244, 162, 97, 0.3)",
+        },
+      },
+      splitLine: {
+        lineStyle: {
+          color: "rgba(244, 162, 97, 0.1)",
+        },
+      },
+    },
+    series: [
+      {
+        name: "活跃用户",
+        type: "line",
+        data: activityData.map((item) => item.activeUsers),
+        smooth: true,
+        lineStyle: {
+          width: 3,
+          color: "#a29bfe",
+        },
+        itemStyle: {
+          color: "#a29bfe",
+        },
+        areaStyle: {
+          color: {
+            type: "linear",
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: "rgba(162, 155, 254, 0.4)" },
+              { offset: 1, color: "rgba(162, 155, 254, 0.1)" },
+            ],
+          },
+        },
+      },
+      {
+        name: "新增用户",
+        type: "line",
+        data: activityData.map((item) => item.newUsers),
+        smooth: true,
+        lineStyle: {
+          width: 3,
+          color: "#fdcb6e",
+        },
+        itemStyle: {
+          color: "#fdcb6e",
+        },
+      },
+      {
+        name: "日记用户",
+        type: "line",
+        data: activityData.map((item) => item.diaryUsers),
+        smooth: true,
+        lineStyle: {
+          width: 3,
+          color: "#00b894",
+        },
+        itemStyle: {
+          color: "#00b894",
+        },
+      },
+      {
+        name: "咨询用户",
+        type: "line",
+        data: activityData.map((item) => item.consultationUsers),
+        smooth: true,
+        lineStyle: {
+          width: 3,
+          color: "#fab1a0",
+        },
+        itemStyle: {
+          color: "#fab1a0",
+        },
+      },
+    ],
+  };
+  userActivityChart.setOption(option);
 };
 
 //图片引入
