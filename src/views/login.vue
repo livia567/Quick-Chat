@@ -45,7 +45,7 @@
       </el-form>
 
       <div class="footer">
-        <p>还没有账户？<router-link to="/register">去注册</router-link></p>
+        <p>还没有账户？<router-link to="/auth/register">去注册</router-link></p>
       </div>
     </div>
   </div>

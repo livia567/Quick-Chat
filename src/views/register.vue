@@ -97,9 +97,12 @@
 
 <script setup>
 import { ref, reactive } from "vue";
+import { register } from "@/api/frontend";
+import { ElMessage } from "element-plus";
+import { useRouter } from "vue-router";
 
 // 注册表单数据
-const formData = ref({
+const formData = reactive({
   username: "",
   email: "",
   nickname: "",
@@ -119,10 +122,21 @@ const rules = reactive({
 });
 
 //表单提交
+const router = useRouter();
 const submitFormRef = ref(null);
 const submitForm = async (formEl) => {
   if (!formEl) return;
-  formEl.validate(async (valid) => {});
+  formEl.validate(async (valid) => {
+    // 这里data需要解构赋值，因为register返回的是一个对象，里面有一个data属性，我们只需要data属性
+    register(formData).then(({ data }) => {
+      console.log(data);
+      //如果注册成功，就不会有data属性(data里面是注册失败的信息)
+      if (!data) {
+        ElMessage.success("注册成功");
+        router.push("/auth/login");
+      }
+    });
+  });
 };
 </script>
 
