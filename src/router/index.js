@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 import BackendLayout from "@/components/BackendLayout.vue";
 import AuthLayout from "@/components/AuthLayout.vue";
+import FrontendLayout from "@/components/FrontendLayout.vue";
 
-//路由配置
+//后台路由配置
 const backendRoutes = [
   {
     path: "/back",
@@ -66,9 +67,36 @@ const backendRoutes = [
   },
 ];
 
+//前台路由配置
+const frontendRoutes = [
+  {
+    path: "/",
+    component: FrontendLayout,
+    children: [
+      {
+        path: "",
+        component: () => import("@/views/home.vue"),
+      },
+      {
+        path: "consultation",
+        component: () => import("@/views/consultation.vue"),
+      },
+      {
+        path: "emotion-diary",
+        component: () => import("@/views/emotionDiary.vue"),
+      },
+      {
+        path: "knowledge",
+        component: () => import("@/views/frontendKnowledge.vue"),
+      },
+    ],
+  },
+];
+
 const router = createRouter({
   history: createWebHistory(),
-  routes: backendRoutes,
+  //合并后台路由和前台路由
+  routes: [...backendRoutes, ...frontendRoutes],
 });
 
 //路由前置守卫（页面跳转之前做的事情）
@@ -86,7 +114,7 @@ router.beforeEach((to, from, next) => {
         //已登录的后台用户，如果想要访问不是/back开头的，自动返回首页
         next("/back/dashboard");
       }
-      //如果是前台用户
+      //如果是前台已登录用户
     } else if (userInfo.userType == "1") {
       if (to.path.startsWith("/back")) {
         // 前台用户想访问后台 → 没权限，跳转到前台首页
