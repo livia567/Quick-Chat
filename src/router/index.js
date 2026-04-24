@@ -6,6 +6,8 @@ import AuthLayout from "@/components/AuthLayout.vue";
 const backendRoutes = [
   {
     path: "/back",
+    //已登录时访问/back时，实际跳转到/back/dashboard页面（重定向）
+    redirect: "/back/dashboard",
     component: BackendLayout,
     children: [
       {
@@ -43,30 +45,70 @@ const backendRoutes = [
     ],
   },
   {
-    path:'/auth',
-    component:AuthLayout,
-    children:[
+    path: "/auth",
+    component: AuthLayout,
+    children: [
       {
-        path:'login',
-        component:()=>import('@/views/login.vue'),
-        meta:{
-          title:'登录'
-        }
+        path: "login",
+        component: () => import("@/views/login.vue"),
+        meta: {
+          title: "登录",
+        },
       },
       {
-        path:'register',
-        component:()=>import('@/views/register.vue'),
-        meta:{
-          title:'注册'
-        }
-      }
-    ]
-  }
+        path: "register",
+        component: () => import("@/views/register.vue"),
+        meta: {
+          title: "注册",
+        },
+      },
+    ],
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes: backendRoutes,
+});
+
+//路由前置守卫（页面跳转之前做的事情）
+router.beforeEach((to, from, next) => {
+  //判断是否登录
+  const token = localStorage.getItem("token");
+  if (token) {
+    //userInfo是一个字符串，需要转为对象
+    const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+    //如果是后台用户
+    if (userInfo.userType == "2") {
+      if (to.path.startsWith("/back")) {
+        next();
+      } else {
+        //已登录的后台用户，如果想要访问不是/back开头的，自动返回首页
+        next("/back/dashboard");
+      }
+      //如果是前台用户
+    } else if (userInfo.userType == "1") {
+      if (to.path.startsWith("/back")) {
+        // 前台用户想访问后台 → 没权限，跳转到前台首页
+        next("/");
+      } else {
+        // 前台用户访问前台页面 → 放行
+        next();
+      }
+    } else {
+      // userType 是其他值时的兜底，否则页面卡死
+      next("/auth/login");
+    }
+
+    //未登录
+  } else {
+    if (to.path.startsWith("/back")) {
+      //如果要访问后台页面，那么未登录时跳转到登录页
+      next("/auth/login");
+    } else {
+      next();
+    }
+  }
 });
 
 export default router;

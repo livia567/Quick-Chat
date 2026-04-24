@@ -5,7 +5,7 @@
       <el-button @click="handleCollapse">
         <el-icon><Expand /></el-icon>
       </el-button>
-      <p class="page-title">导航栏</p>
+      <p class="page-title">{{ route.meta.title }}</p>
     </div>
 
     <!-- 右侧 -->
@@ -35,11 +35,36 @@
 <script setup>
 import { ref } from "vue";
 import { useAdminStore } from "@/stores/admin";
+import { logout } from "@/api/admin";
+import { useRouter, useRoute } from "vue-router";
+import { ElMessageBox, ElMessage } from "element-plus";
+//useRouter	获取路由器实例，用来跳转页面
+//useRoute	获取当前路由信息，用来读取数据
+
+//获取路由实例
+const router = useRouter();
+//获取当前路由信息
+const route = useRoute();
 
 const handleCommand = (command) => {
   console.log(command);
   if (command === "logout") {
     // 退出登录逻辑
+    ElMessageBox.confirm("确定退出登录吗？", "提示", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    }).then(() => {
+      // 确认退出登录（调用接口告诉后端销毁当前用户信息）
+      logout().then(() => {
+        //清除缓存
+        localStorage.removeItem("token");
+        localStorage.removeItem("userInfo");
+        ElMessage.success("退出登录成功");
+        //跳转到登录页
+        router.push("/auth/login");
+      });
+    });
   }
 };
 
