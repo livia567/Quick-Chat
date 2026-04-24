@@ -89,6 +89,7 @@ const submitForm = async (formEl) => {
             router.push("/back/dashboard");
           } else {
             //跳转到用户页面
+            router.push("/");
           }
         } else {
           //登录失败，提示用户

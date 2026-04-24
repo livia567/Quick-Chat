@@ -116,8 +116,8 @@ router.beforeEach((to, from, next) => {
       }
       //如果是前台已登录用户
     } else if (userInfo.userType == "1") {
-      if (to.path.startsWith("/back")) {
-        // 前台用户想访问后台 → 没权限，跳转到前台首页
+      // 前台用户想访问后台或登录页 → 没权限，跳转到前台首页
+      if (to.path.startsWith("/back") || to.path.startsWith("/auth")) {
         next("/");
       } else {
         // 前台用户访问前台页面 → 放行
