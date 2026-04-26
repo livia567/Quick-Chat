@@ -77,7 +77,7 @@
       </div>
 
       <!-- 聊天内容区域 -->
-      <div class="chat-messages">
+      <div class="chat-messages" ref="messageListRef">
         <!-- 没数据时展示欢迎用语 -->
         <div class="message-item ai-message" v-if="message?.length === 0">
           <div class="message-avatar">
@@ -158,6 +158,7 @@
       <div class="chat-input">
         <!-- 左侧输入框 -->
         <div class="input-container">
+          <!-- v-model="userMessage" 用户输入时，自动更新userMessage的值 -->
           <el-input
             v-model="userMessage"
             placeholder="请输入你想要分享的内容..."
@@ -166,10 +167,21 @@
             :disabled="isAiTyping"
             @keydown="handleKeyDown"
             class="message-input"
+            clearable
           ></el-input>
+          <div class="input-footer">
+            <span>按Enter发送消息，Shift+Enter换行</span>
+            <span>{{ userMessage.length }}/500</span>
+          </div>
         </div>
         <!-- 右侧发送按钮 -->
-        <el-button type="primary" class="send-btn" @click="sendMessage">
+        <!-- disabled禁用按钮：用户输入为空或超过500个字符 -->
+        <el-button
+          :disabled="!userMessage.trim() || userMessage.length > 500"
+          type="primary"
+          class="send-btn"
+          @click="sendMessage"
+        >
           <el-icon><Promotion /></el-icon>
         </el-button>
       </div>
@@ -188,13 +200,28 @@ import {
 import { ElMessage } from "element-plus";
 import { Clock } from "@element-plus/icons-vue";
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { nextTick } from "vue";
 
 const iconUrl1 = new URL("@/assets/images/robot-fill.png", import.meta.url)
   .href;
 const iconUrl2 = new URL("@/assets/images/like.png", import.meta.url).href;
 const iconUrl3 = new URL("@/assets/images/users.png", import.meta.url).href;
 
+//当前正在看的会话（聊天框内展示的会话）
+const currentSession = ref(null);
+//左侧会话列表
+const sessionList = ref([]);
+//当前会话（聊天框里的会话）的所有消息历史（数据是一条一条的，用数组合适）
+const message = ref([]);
+//输入框里的文字（和input-model绑定了）
+const userMessage = ref("");
+//AI是否正在输入
+const isAiTyping = ref(false);
+
 //新建会话（点击+号和挂载时调用）
+//只是在前端造了一个假会话，后端还不知道。只有用户真正发消息之后才会去后端创建。
+//所以id是一个临时的id
 const createNewFrontendSession = () => {
   //创建一个新的会话对象（前端展示的会话信息）
   const newSession = {
@@ -206,22 +233,11 @@ const createNewFrontendSession = () => {
   };
   //将新会话对象赋值给当前正在对话的会话对象
   currentSession.value = newSession;
+  //清空聊天框的消息列表
+  message.value = [];
+  //清空输入框
+  userMessage.value = "";
 };
-
-//定义一个当前正在对话的会话对象（列表有很多条会话，但展示的是当前正在对话的会话）
-const currentSession = ref(null);
-//定义会话列表数据
-const sessionList = ref([]);
-
-//定义对话消息数据结构
-//数据是一条一条的，用数组合适
-const message = ref([]);
-
-//用户输入的消息
-const userMessage = ref("");
-
-//AI是否正在输入
-const isAiTyping = ref(false);
 
 //处理键盘事件
 const handleKeyDown = (e) => {
@@ -243,19 +259,34 @@ const sendMessage = () => {
   }
 
   //获取用户输入的消息
-  const message = userMessage.value.trim();
+  const userMsg = userMessage.value.trim();
+  //清空输入框
   userMessage.value = "";
   //如果没有会话或是临时会话（AI显示默认提示词），就需要调后端接口创建一个新的会话
   if (currentSession.value.status === "TEMP") {
-    startNewSession(message);
+    startNewSession(userMsg);
+  } else {
+    //如果是正式会话，则直接调用开始流式对话函数
+    //把用户消息加到message消息列表里
+    message.value.push({
+      id: Date.now(), // 这个是消息ID，不是会话ID。后端还没保存这条消息，所以只能临时生成
+      //这个id是给v-for用的：
+      //<div v-for="msg in message" :key="msg.id">
+      senderType: 1,
+      content: userMsg,
+      createAt: new Date().toISOString(),
+    });
+    //滚动到最底部
+    scrollToBottom();
+    startAIResponse(currentSession.value.sessionId, userMsg);
   }
 };
 
 //创建新会话（调用后端接口的函数）
-const startNewSession = (message) => {
+const startNewSession = (userMsg) => {
   //构建会话参数
   const sessionParams = {
-    initialMessage: message,
+    initialMessage: userMsg,
   };
   //如果是新会话，则自动生成会话标题
   if (currentSession.value.sessionTitle === "新对话") {
@@ -266,7 +297,7 @@ const startNewSession = (message) => {
   }
   //调用后端接口创建新会话
   startSession(sessionParams).then((res) => {
-    //将后端返回的数据，转为前端会话格式
+    //拿到后端的真实id，更新前端会话临时id对象
     const sessionData = {
       sessionId: res.sessionId,
       status: res.status,
@@ -279,9 +310,116 @@ const startNewSession = (message) => {
       // 已经是正式会话 → 直接换成新对象
       currentSession.value = sessionData;
     }
-    //会话列表
+    //创建新会话后，刷新会话列表
     getSessionPage();
+    //添加初始用户消息
+    message.value.push({
+      id: Date.now(),
+      senderType: 1,
+      content: userMsg,
+      createAt: new Date().toISOString(),
+    });
+    //创建新会话后，开始流式对话
+    //这里的userMsg是startNewSession函数调用时传的参数，往上看其实就是userMessage去掉空格后
+    startAIResponse(currentSession.value.sessionId, userMsg);
   });
+};
+
+//开始流式对话
+const startAIResponse = (sessionId, userMessage) => {
+  //防止重复发送
+  if (isAiTyping.value) {
+    ElMessage.error("AI助手正在输入中，请稍后");
+    return;
+  }
+  //设置AI助手正在输入中
+  isAiTyping.value = true;
+
+  // aiMessage是一个临时消息对象，用于在UI上立即显示"AI正在输入"的状态
+  const aiMessage = {
+    // 流式对话开始时，AI的第一条回复还没有被后端保存，所以还没有后端ID
+    id: `ai_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    senderType: 2,
+    //当content为空时，显示三个小圆点，表示AI正在输入中
+    content: "",
+    createAt: new Date().toISOString(),
+  };
+  //将aiMessage添加到消息数组中
+  message.value.push(aiMessage);
+
+  //调用流式接口
+  const ctrl = new AbortController(); //AbortController是专门用来中止fetch请求的，会返回一个实例
+  //fetchEventSource接收2个参数，第一个是接口地址，第二个是请求参数
+  fetchEventSource("/api/psychological-chat/stream", {
+    method: "POST",
+    headers: {
+      //告诉后端服务器：前端发送的数据是JSON格式
+      "Content-Type": "application/json",
+      // 不是axios，所以需要手动添加token到headers中
+      Token: localStorage.getItem("token"),
+      Accept: "text/event-stream",
+    },
+    body: JSON.stringify({
+      sessionId,
+      userMessage,
+    }),
+    //把控制器绑定到请求上，ctrl.abort()就能中断请求了
+    signal: ctrl.signal,
+    // 连接刚建立时触发一次，可以在这里检查连接是否正常
+    onopen: (response) => {
+      console.log(response);
+      if (response.headers.get("content-type") !== "text/event-stream") {
+        ElMessage.error("后端返回的不是流式数据");
+      }
+    },
+    // 后端每推一段数据就触发一次
+    onmessage: (event) => {
+      console.log(event);
+      // event.data 就是后端推来的那段数据
+      const raw = event.data.trim();
+      if (!raw) return; //空数据跳过
+      // event.event是事件类型，后端发"done"表示结束
+      const eventName = event.event;
+      //获取到当前会话的AI消息
+      const aiMessage = message.value[message.value.length - 1];
+      if (eventName === "done") {
+        //AI输入完毕
+        isAiTyping.value = false;
+        //中止fetch请求
+        ctrl.abort();
+        return;
+      }
+      //把后端推来的JSON字符串转成对象
+      const payload = JSON.parse(raw);
+      const ok = String(payload.code) === "200";
+      if (ok && payload.data && payload.data.content) {
+        aiMessage.content += payload.data.content;
+        //滚动到最底部
+        scrollToBottom();
+      } else if (!ok) {
+        //错误回复显示
+        handleError(payload.message || "AI回复失败");
+      }
+    },
+    onError: (err) => {
+      handleError(err || "AI回复失败");
+      throw err;
+    },
+    // 连接关闭时触发
+    onClose: () => {
+      //开始情绪分析
+    },
+  });
+};
+//错误回复显示
+const handleError = (error) => {
+  //获取到当前会话的AI消息
+  const aiMessage = message.value[message.value.length - 1];
+  if (aiMessage) {
+    aiMessage.content = "AI回复失败，请重试";
+  }
+  isAiTyping.value = false;
+  ElMessage.error("AI回复失败，请重试");
 };
 
 //获取会话列表
@@ -303,6 +441,14 @@ const handleSessionClick = (session) => {
     console.log(res);
     message.value = res;
   });
+  //更新当前会话对象的数据
+  const sessionData = {
+    sessionId: "session_" + session.id,
+    status: "ACTIVE",
+    sessionTitle: session.sessionTitle,
+  };
+  //将当前会话对象赋值给点击的会话对象
+  currentSession.value = sessionData;
 };
 
 //删除会话
@@ -312,6 +458,9 @@ const handleDeleteSession = (sessionId) => {
     ElMessage.success("删除成功");
     //删除成功后，刷新会话列表
     getSessionPage();
+    if (currentSession.value?.sessionId === "session_" + sessionId) {
+      createNewFrontendSession();
+    }
   });
 };
 
@@ -319,6 +468,17 @@ const handleDeleteSession = (sessionId) => {
 const formatMessageContent = (content) => {
   return content.replace(/\n/g, "<br>");
 };
+
+//加滚动逻辑
+const messageListRef = ref(null);
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (messageListRef.value) {
+      messageListRef.value.scrollTop = messageListRef.value.scrollHeight;
+    }
+  });
+};
+
 //挂载时调用
 onMounted(() => {
   //新建一个会话
