@@ -47,23 +47,129 @@
           </div>
         </div>
       </div>
+
+      <!-- 消息输入框 -->
+      <div class="chat-input">
+        <!-- 左侧输入框 -->
+        <div class="input-container">
+          <el-input
+            v-model="userMessage"
+            placeholder="请输入你想要分享的内容..."
+            type="textarea"
+            :rows="3"
+            :disabled="isAiTyping"
+            @keydown="handleKeyDown"
+            class="message-input"
+          ></el-input>
+        </div>
+        <!-- 右侧发送按钮 -->
+        <el-button type="primary" class="send-btn" @click="sendMessage">
+          <el-icon><Promotion /></el-icon>
+        </el-button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { startSession } from "@/api/frontend";
+import { ElMessage } from "element-plus";
 
 const iconUrl1 = new URL("@/assets/images/robot-fill.png", import.meta.url)
   .href;
 const iconUrl2 = new URL("@/assets/images/like.png", import.meta.url).href;
 
-//新建会话
-const createNewFrontendSession = () => {};
+//新建会话（点击+号和挂载时调用）
+const createNewFrontendSession = () => {
+  //创建一个新的会话对象（前端展示的会话信息）
+  const newSession = {
+    //每个会话都必须有一个唯一标识（ID）
+    //Date.now()生成一个时间戳
+    sessionId: `temp_${Date.now()}`,
+    status: "TEMP",
+    sessionTitle: "新对话",
+  };
+  //将新会话对象赋值给当前正在对话的会话对象
+  currentSession.value = newSession;
+};
+
+//定义一个当前正在对话的会话对象（列表有很多条会话，但展示的是当前正在对话的会话）
+const currentSession = ref(null);
 
 //定义对话消息数据结构
 //数据是一条一条的，用数组合适
 const message = ref([]);
+
+//用户输入的消息
+const userMessage = ref("");
+
+//AI是否正在输入
+const isAiTyping = ref(false);
+
+//处理键盘事件
+const handleKeyDown = (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+};
+
+//发送消息
+const sendMessage = () => {
+  //如果用户输入的消息为空，直接返回
+  if (!userMessage.value.trim()) return;
+
+  //如果AI助手正在输入中，直接返回
+  if (isAiTyping.value) {
+    ElMessage.error("AI助手正在输入中，请稍后");
+    return;
+  }
+
+  //获取用户输入的消息
+  const message = userMessage.value.trim();
+  userMessage.value = "";
+  //如果没有会话或是临时会话（AI显示默认提示词），就需要调后端接口创建一个新的会话
+  if (currentSession.value.status === "TEMP") {
+    startNewSession(message);
+  }
+};
+
+//创建新会话（调用后端接口的函数）
+const startNewSession = (message) => {
+  //构建会话参数
+  const sessionParams = {
+    initialMessage: message,
+  };
+  //如果是新会话，则自动生成会话标题
+  if (currentSession.value.sessionTitle === "新对话") {
+    sessionParams.sessionTitle = `宁渡AI助手-${new Date().toLocaleString()}`;
+  } else {
+    //如果是历史会话记录（已有会话标题），则直接使用原会话标题
+    sessionParams.sessionTitle = currentSession.value.sessionTitle;
+  }
+  //调用后端接口创建新会话
+  startSession(sessionParams).then((res) => {
+    //将后端返回的数据，转为前端会话格式
+    const sessionData = {
+      sessionId: res.sessionId,
+      status: res.status,
+      sessionTitle: sessionParams.sessionTitle,
+    };
+    // 当前是临时会话 → 在原对象上更新字段，不换对象
+    if (currentSession.value && currentSession.value.status === "TEMP") {
+      Object.assign(currentSession.value, sessionData);
+    } else {
+      // 已经是正式会话 → 直接换成新对象
+      currentSession.value = sessionData;
+    }
+  });
+};
+
+//在组件挂载完成后，新建一个会话
+onMounted(() => {
+  createNewFrontendSession();
+});
 </script>
 
 <style scoped lang="scss">
