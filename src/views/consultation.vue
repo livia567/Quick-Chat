@@ -12,6 +12,50 @@
           在线服务中
         </div>
       </div>
+
+      <!-- 会话列表 -->
+      <div class="session-history">
+        <h4 class="section-title">会话列表</h4>
+        <div class="session-list">
+          <div
+            class="session-item"
+            v-for="session in sessionList"
+            :key="session.id"
+            @click="handleSessionClick(session)"
+          >
+            <div class="session-info">
+              <div class="session-title">
+                <span>{{ session.sessionTitle }}</span>
+                <div class="session-meta">
+                  <span class="session-time">{{ session.startedAt }}</span>
+                </div>
+                <div class="session-preview">
+                  {{ session.lastMessageContent }}
+                </div>
+                <div class="session-stats">
+                  <span>
+                    <el-icon><ChatRound /></el-icon>
+                    {{ session.messageCount || 0 }}
+                  </span>
+                  <span>
+                    <el-icon><Clock /></el-icon>
+                    {{ session.durationMinutes || 0 }} 分钟
+                  </span>
+                </div>
+              </div>
+              <div class="session-actions">
+                <el-button
+                  text
+                  type="danger"
+                  @click="handleDeleteSession(session.id)"
+                >
+                  <el-icon><DeleteFilled /></el-icon>
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 聊天主区域 -->
@@ -73,8 +117,9 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { startSession } from "@/api/frontend";
+import { startSession, getSessionList } from "@/api/frontend";
 import { ElMessage } from "element-plus";
+import { Clock } from "@element-plus/icons-vue";
 
 const iconUrl1 = new URL("@/assets/images/robot-fill.png", import.meta.url)
   .href;
@@ -96,6 +141,8 @@ const createNewFrontendSession = () => {
 
 //定义一个当前正在对话的会话对象（列表有很多条会话，但展示的是当前正在对话的会话）
 const currentSession = ref(null);
+//定义会话列表数据
+const sessionList = ref([]);
 
 //定义对话消息数据结构
 //数据是一条一条的，用数组合适
@@ -163,12 +210,43 @@ const startNewSession = (message) => {
       // 已经是正式会话 → 直接换成新对象
       currentSession.value = sessionData;
     }
+    //会话列表
+    getSessionPage();
   });
 };
 
-//在组件挂载完成后，新建一个会话
+//获取会话列表
+const getSessionPage = () => {
+  getSessionList({
+    pageNum: 1,
+    pageSize: 10,
+  }).then((res) => {
+    console.log(res);
+    sessionList.value = res.records;
+  });
+};
+
+//获取会话数据（点击会话列表项时把点击的会话赋值给当前正在对话的会话对象展示在大屏幕上）
+const handleSessionClick = (session) => {
+  //将点击的会话赋值给当前正在对话的会话对象
+  currentSession.value = session;
+};
+
+//删除会话
+const handleDeleteSession = (session) => {
+  //调用后端接口删除会话
+  deleteSession(session.sessionId).then(() => {
+    //删除成功后，刷新会话列表
+    getSessionPage();
+  });
+};
+
+//挂载时调用
 onMounted(() => {
+  //新建一个会话
   createNewFrontendSession();
+  //获取会话列表
+  getSessionPage();
 });
 </script>
 

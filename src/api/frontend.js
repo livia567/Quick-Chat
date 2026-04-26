@@ -9,3 +9,8 @@ export function register(data) {
 export const startSession = (data) => {
   return service.post("/psychological-chat/session/start", data);
 };
+
+//分页查询咨询会话
+export const getSessionList = (params) => {
+  return service.get("/psychological-chat/sessions", { params });
+};
