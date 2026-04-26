@@ -78,8 +78,8 @@
 
       <!-- 聊天内容区域 -->
       <div class="chat-messages">
-        <!-- 欢迎用语 -->
-        <div class="message-item ai-message" v-if="message.length === 0">
+        <!-- 没数据时展示欢迎用语 -->
+        <div class="message-item ai-message" v-if="message?.length === 0">
           <div class="message-avatar">
             <el-image :src="iconUrl1" style="width: 18px; height: 18px" />
           </div>
@@ -88,6 +88,68 @@
               您好！我是小暖，您的AI心理健康助手，很高兴陪伴您，为您提供温暖的心理支持。请告诉我，今天您感觉怎么样？有什么想要分享的吗？
             </div>
             <div class="message-time">刚刚</div>
+          </div>
+        </div>
+
+        <!-- 有数据时展示消息列表 -->
+        <div
+          class="message-item"
+          v-for="msg in message"
+          :key="msg.id"
+          :class="msg.senderType === 1 ? 'user-message' : 'ai-message'"
+        >
+          <div class="message-avatar">
+            <el-image
+              v-if="msg.senderType === 1"
+              style="width: 18px; height: 18px"
+              :src="iconUrl3"
+            />
+            <el-image
+              v-if="msg.senderType === 2"
+              style="width: 18px; height: 18px"
+              :src="iconUrl1"
+            />
+          </div>
+
+          <!-- 消息主体 -->
+          <div class="message-content">
+            <!-- 消息内的文字内容 -->
+            <div class="message-bubble">
+              <!-- AI助手思考中时展示的点点 -->
+              <div
+                v-if="msg.senderType === 2 && isAiTyping && msg.content === ''"
+                class="typing-indicator"
+              >
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+              <!-- AI错误提示 -->
+              <!-- msg.isError是后端返回的错误提示 -->
+              <!-- mes.isError为true表示出错 -->
+              <div v-else-if="msg.isError" class="error-message">
+                <p>{{ msg.content }}</p>
+              </div>
+              <!-- AI正常返回消息 -->
+              <MarkdownRenderer
+                v-else-if="msg.senderType === 2 && !msg.isError"
+                :content="msg.content"
+                :isAiMessage="true"
+              />
+              <!-- 用户发的消息 -->
+              <p
+                v-else-if="msg.content"
+                v-html="formatMessageContent(msg.content)"
+              ></p>
+            </div>
+            <!-- 消息发送时间 -->
+            <div class="message-time">
+              {{
+                msg.senderType === 2 && isAiTyping
+                  ? "正在输入中..."
+                  : msg.createdAt
+              }}
+            </div>
           </div>
         </div>
       </div>
@@ -117,13 +179,20 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { startSession, getSessionList } from "@/api/frontend";
+import {
+  startSession,
+  getSessionList,
+  deleteSession,
+  getSessionDetail,
+} from "@/api/frontend";
 import { ElMessage } from "element-plus";
 import { Clock } from "@element-plus/icons-vue";
+import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 
 const iconUrl1 = new URL("@/assets/images/robot-fill.png", import.meta.url)
   .href;
 const iconUrl2 = new URL("@/assets/images/like.png", import.meta.url).href;
+const iconUrl3 = new URL("@/assets/images/users.png", import.meta.url).href;
 
 //新建会话（点击+号和挂载时调用）
 const createNewFrontendSession = () => {
@@ -228,19 +297,28 @@ const getSessionPage = () => {
 
 //获取会话数据（点击会话列表项时把点击的会话赋值给当前正在对话的会话对象展示在大屏幕上）
 const handleSessionClick = (session) => {
-  //将点击的会话赋值给当前正在对话的会话对象
-  currentSession.value = session;
+  console.log(session, "session");
+  //点击会话时，获取会话详情
+  getSessionDetail(session.id).then((res) => {
+    console.log(res);
+    message.value = res;
+  });
 };
 
 //删除会话
-const handleDeleteSession = (session) => {
+const handleDeleteSession = (sessionId) => {
   //调用后端接口删除会话
-  deleteSession(session.sessionId).then(() => {
+  deleteSession(sessionId).then(() => {
+    ElMessage.success("删除成功");
     //删除成功后，刷新会话列表
     getSessionPage();
   });
 };
 
+//格式化消息内容（处理用户发送的消息格式）（简单的换行逻辑）
+const formatMessageContent = (content) => {
+  return content.replace(/\n/g, "<br>");
+};
 //挂载时调用
 onMounted(() => {
   //新建一个会话
