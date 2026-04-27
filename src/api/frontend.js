@@ -24,3 +24,8 @@ export const deleteSession = (sessionId) => {
 export const getSessionDetail = (sessionId) => {
   return service.get(`/psychological-chat/sessions/${sessionId}/messages`);
 };
+
+//获取会话情绪分析结果
+export const getSessionEmotion = (sessionId) => {
+  return service.get(`/psychological-chat/session/${sessionId}/emotion`);
+};
