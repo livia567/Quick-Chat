@@ -89,6 +89,14 @@ const frontendRoutes = [
         path: "knowledge",
         component: () => import("@/views/frontendKnowledge.vue"),
       },
+      {
+        //跳转到这个路径时，Vue Router会自动拿到id参数（article/后面的即为id）
+        //然后把id存进route.params.id
+        //点击会话列表时会传入相应id
+        path: "/knowledge/article/:id",
+        component: () => import("@/views/articleDetail.vue"),
+        props: true, //props:true就一个作用，把route.params里的东西，自动当成props传给组件
+      },
     ],
   },
 ];

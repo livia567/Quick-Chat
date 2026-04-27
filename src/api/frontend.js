@@ -39,3 +39,8 @@ export const addEmotionDiary = (data) => {
 export const getKnowledgeList = (params) => {
   return service.get("/knowledge/article/page", { params });
 };
+
+//知识文章详情
+export const getKnowledgeDetail = (id) => {
+  return service.get(`/knowledge/article/${id}`);
+};

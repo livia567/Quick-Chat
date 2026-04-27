@@ -17,6 +17,7 @@
             class="recommend-item"
             v-for="item in recommendList"
             :key="item.id"
+            @click="goToArticle(item.id)"
           >
             <h4>{{ item.title }}</h4>
             <p class="read-count">
@@ -29,7 +30,12 @@
 
       <!-- 右侧文章列表 -->
       <div class="article-list">
-        <div class="article-item" v-for="item in articleList" :key="item.id">
+        <div
+          class="article-item"
+          v-for="item in articleList"
+          :key="item.id"
+          @click="goToArticle(item.id)"
+        >
           <el-image
             style="width: 240px; height: 150px"
             :src="getImage(item.coverImage)"
@@ -78,6 +84,9 @@ import { ref, onMounted, reactive } from "vue";
 import { getKnowledgeList } from "@/api/frontend";
 import dayjs from "dayjs";
 import { Platform } from "@element-plus/icons-vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const iconUrl = new URL("@/assets/images/book.png", import.meta.url).href;
 const coverUrl = new URL("@/assets/images/cover.jpg", import.meta.url).href;
@@ -117,6 +126,11 @@ const handleChange = (page) => {
   pagination.currentPage = page;
   //更新右侧列表数据
   getPageList();
+};
+
+//跳转到详情页面
+const goToArticle = (id) => {
+  router.push(`/knowledge/article/${id}`);
 };
 
 //推荐阅读列表
