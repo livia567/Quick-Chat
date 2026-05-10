@@ -138,7 +138,12 @@ router.beforeEach((to, from, next) => {
 
     //未登录
   } else {
-    if (to.path.startsWith("/back")) {
+    if (
+      to.path.startsWith("/back") ||
+      to.path.startsWith("/consultation") ||
+      to.path.startsWith("/emotion-diary") ||
+      to.path.startsWith("/knowledge")
+    ) {
       //如果要访问后台页面，那么未登录时跳转到登录页
       next("/auth/login");
     } else {

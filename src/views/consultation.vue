@@ -6,7 +6,7 @@
         <div class="breathing-circle">
           <el-image :src="iconUrl1" style="width: 25px; height: 25px" />
         </div>
-        <h3 class="assistant-name">宁渡AI助手</h3>
+        <h3 class="assistant-name">我的AI助手</h3>
         <div class="online-status">
           <div class="status-dot"></div>
           在线服务中
@@ -142,7 +142,7 @@
             <el-image :src="iconUrl2" style="width: 30px; height: 30px" />
           </div>
           <div class="chat-info">
-            <h2>宁渡AI助手</h2>
+            <h2>心理AI助手</h2>
             <p>您的贴心AI心理健康助手</p>
           </div>
         </div>

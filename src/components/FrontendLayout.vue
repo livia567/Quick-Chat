@@ -28,7 +28,10 @@
         <template v-else>
           <router-link to="/auth/login" class="nav-link">登录</router-link>
           <router-link to="/auth/register" class="nav-link">
-            <el-button type="primary">注册</el-button>
+            <el-button
+              style="background: #1d9e75; border-color: #1d9e75; color: #fff"
+              >注册</el-button
+            >
           </router-link>
         </template>
       </div>
@@ -54,7 +57,7 @@ import { ref, onMounted } from "vue";
 import { logout } from "@/api/admin";
 import router from "@/router";
 
-const iconUrl = new URL("@/assets/images/机器人.png", import.meta.url).href;
+const iconUrl = new URL("@/assets/images/robot-fill.png", import.meta.url).href;
 
 const isLoggedIn = ref(false);
 
@@ -88,6 +91,12 @@ onMounted(() => {
     .brand-section {
       display: flex;
       align-items: center;
+      .brand-logo {
+        padding: 5px;
+        background: #1d9e75;
+        border-radius: 30%;
+        display: flex;
+      }
       .brand-name {
         margin-left: 10px;
         font-size: 24px;
@@ -111,8 +120,8 @@ onMounted(() => {
   }
 
   .footer-container {
-    background: #1f2937;
-    color: white;
+    background: #f5f5f7;
+    color: #333;
     padding: 15px 0;
     margin-top: auto;
     .footer-bottom {
