@@ -1,12 +1,5 @@
 <template>
   <div class="knowledge-container">
-    <!-- 知识库标题 -->
-    <div class="header-section">
-      <div class="header-content">
-        <el-image :src="iconUrl" style="width: 60px; height: 60px"></el-image>
-        <h1>心理健康知识库</h1>
-      </div>
-    </div>
     <!-- 知识库主体内容 -->
     <div class="content">
       <!-- 左侧菜单 -->
@@ -162,16 +155,6 @@ onMounted(() => {
     align-items: center;
     span {
       margin-left: 10px;
-    }
-  }
-  .header-section {
-    background: linear-gradient(135deg, #f59e0b 0%, #8b5cf6 100%);
-    color: white;
-    padding: 48px;
-    .header-content {
-      display: flex;
-      align-items: center;
-      gap: 12px;
     }
   }
   .content {

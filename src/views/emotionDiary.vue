@@ -1,12 +1,5 @@
 <template>
   <div class="emotionDiary-container">
-    <div class="header-section">
-      <div class="header-content">
-        <el-image :src="iconUrl" style="width: 60px; height: 60px"></el-image>
-        <h1>情绪日志</h1>
-      </div>
-    </div>
-
     <div class="content">
       <!-- 第一块：情绪评分 -->
       <div class="diary-card">
@@ -226,16 +219,6 @@ const submit = () => {
 <style scoped lang="scss">
 .emotionDiary-container {
   background: linear-gradient(135deg, #fafbfc 0%, #f7f9fc 50%, #f2f6fa 100%);
-  .header-section {
-    background: linear-gradient(135deg, #7ed321 0%, #f5a623 100%);
-    color: white;
-    padding: 48px;
-    .header-content {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-  }
   .content {
     margin: 0 auto;
     width: 980px;
