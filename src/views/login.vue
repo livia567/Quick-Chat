@@ -46,6 +46,8 @@
 
       <div class="footer">
         <p>还没有账户？<router-link to="/auth/register">去注册</router-link></p>
+        <p class="test">测试用户账号：livia，密码：123456</p>
+        <p class="test">管理员账号：admin，密码：123456</p>
       </div>
     </div>
   </div>
@@ -55,7 +57,7 @@
 import { ref } from "vue";
 import { login } from "@/api/admin";
 import { ElMessage } from "element-plus";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 
 const ruleFormRef = ref();
 
@@ -72,6 +74,7 @@ const rules = ref({
 
 //登录
 const router = useRouter();
+const route = useRoute();
 const submitForm = async (formEl) => {
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
@@ -89,7 +92,8 @@ const submitForm = async (formEl) => {
             router.push("/back/dashboard");
           } else {
             //跳转到用户页面
-            router.push("/");
+            const redirect = route.query.redirect || "/";
+            router.push(redirect);
           }
         } else {
           //登录失败，提示用户
@@ -137,6 +141,11 @@ const submitForm = async (formEl) => {
     .footer {
       text-align: center;
       margin-top: 30px;
+      .test {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #6b7280;
+      }
     }
   }
 }

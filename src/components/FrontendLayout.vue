@@ -133,6 +133,13 @@ onMounted(() => {
         padding-bottom: 2px;
         color: #1d9e75;
       }
+      .logout-btn {
+        font-size: 16px;
+        font-weight: 500;
+        &:hover {
+          color: #1d9e75;
+        }
+      }
     }
   }
 

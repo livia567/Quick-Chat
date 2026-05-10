@@ -145,7 +145,7 @@ router.beforeEach((to, from, next) => {
       to.path.startsWith("/knowledge")
     ) {
       //如果要访问后台页面，那么未登录时跳转到登录页
-      next("/auth/login");
+      next({ path: "/auth/login", query: { redirect: to.fullPath } });
     } else {
       next();
     }
