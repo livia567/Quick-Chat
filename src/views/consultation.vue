@@ -1,18 +1,6 @@
 <template>
   <div class="consultation-container">
     <div class="sidebar">
-      <!-- AI助手信息 -->
-      <div class="ai-assistant-info">
-        <div class="breathing-circle">
-          <el-image :src="iconUrl1" style="width: 25px; height: 25px" />
-        </div>
-        <h3 class="assistant-name">我的AI助手</h3>
-        <div class="online-status">
-          <div class="status-dot"></div>
-          在线服务中
-        </div>
-      </div>
-
       <!-- 情绪花园 -->
       <div class="emotion-garden">
         <div class="garden-header">
@@ -114,7 +102,7 @@
                   </span>
                   <span>
                     <el-icon><Clock /></el-icon>
-                    {{ session.durationMinutes || 0 }} 分钟
+                    {{ formatDuration(session.durationMinutes || 0) }}
                   </span>
                 </div>
               </div>
@@ -283,6 +271,20 @@ const iconUrl1 = new URL("@/assets/images/robot-fill.png", import.meta.url)
   .href;
 const iconUrl2 = new URL("@/assets/images/like.png", import.meta.url).href;
 const iconUrl3 = new URL("@/assets/images/users.png", import.meta.url).href;
+
+//格式化时间（分钟）为天、时、分
+const formatDuration = (minutes) => {
+  const d = Math.floor(minutes / 1440);
+  const h = Math.floor((minutes % 1440) / 60);
+  const m = minutes % 60;
+
+  const parts = [];
+  if (d > 0) parts.push(`${d}天`);
+  if (h > 0) parts.push(`${h}时`);
+  if (m > 0) parts.push(`${m}分`);
+
+  return parts.length ? parts.join("") : "0分";
+};
 
 //当前正在看的会话（聊天框内展示的会话）
 const currentSession = ref(null);
@@ -1018,8 +1020,12 @@ onMounted(() => {
     overflow: hidden;
     flex: 1;
     .chat-header {
-      background: linear-gradient(135deg, #fb923c 0%, #f59e0b 100%);
-      color: white;
+      background: linear-gradient(
+        135deg,
+        #fdf3d0 0%,
+        #faecc4 50%,
+        #f5e6b8 100%
+      );
       padding: 20px 24px;
       display: flex;
       align-items: center;
@@ -1087,8 +1093,12 @@ onMounted(() => {
         }
         &.ai-message {
           .message-avatar {
-            background: linear-gradient(135deg, #fb923c, #f59e0b);
-            box-shadow: 0 4px 12px rgba(251, 146, 60, 0.3);
+            background: linear-gradient(
+              135deg,
+              #fdf3d0 0%,
+              #faecc4 50%,
+              #f5e6b8 100%
+            );
           }
         }
         &.user-message {
@@ -1171,20 +1181,15 @@ onMounted(() => {
         justify-content: space-between;
         align-items: center;
         font-size: 12px;
-        color: #78716c;
+        color: #999;
         font-weight: 500;
       }
       .send-btn {
         height: 60px;
         width: 60px;
         border-radius: 16px;
-        background: linear-gradient(
-          135deg,
-          #fb923c 0%,
-          #f59e0b 100%
-        ) !important;
+        background: linear-gradient(#fdf3d0 0%, #f5e6b8 100%) !important;
         border: none !important;
-        box-shadow: 0 6px 20px rgba(251, 146, 60, 0.25);
         transition: all 0.3s ease;
       }
     }

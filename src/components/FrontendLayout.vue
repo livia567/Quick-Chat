@@ -93,7 +93,7 @@ onMounted(() => {
       align-items: center;
       .brand-logo {
         padding: 5px;
-        background: #1d9e75;
+        background: #999;
         border-radius: 30%;
         display: flex;
       }
