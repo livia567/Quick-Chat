@@ -14,14 +14,26 @@
       </div>
       <!-- 导航栏右侧：导航链接 -->
       <div class="nav-section">
-        <router-link to="/" class="nav-link">首页</router-link>
-        <router-link v-if="isLoggedIn" to="/consultation" class="nav-link"
+        <router-link to="/" class="nav-link" exact-active-class="nav-active"
+          >首页</router-link
+        >
+        <router-link
+          v-if="isLoggedIn"
+          to="/consultation"
+          class="nav-link"
+          active-class="nav-active"
           >AI咨询</router-link
         >
-        <router-link v-if="isLoggedIn" to="/emotion-diary" class="nav-link"
+        <router-link
+          v-if="isLoggedIn"
+          to="/emotion-diary"
+          class="nav-link"
+          active-class="nav-active"
           >情绪日记</router-link
         >
-        <router-link to="/knowledge" class="nav-link">知识库</router-link>
+        <router-link to="/knowledge" class="nav-link" active-class="nav-active"
+          >知识库</router-link
+        >
         <el-button v-if="isLoggedIn" class="logout-btn" @click="handleLogout"
           >退出登录</el-button
         >
@@ -93,7 +105,7 @@ onMounted(() => {
       align-items: center;
       .brand-logo {
         padding: 5px;
-        background: #999;
+        background: #7ccdb3;
         border-radius: 30%;
         display: flex;
       }
@@ -113,8 +125,13 @@ onMounted(() => {
         font-size: 16px;
         font-weight: 500;
         &:hover {
-          color: #4a90e2;
+          color: #1d9e75;
         }
+      }
+      .nav-active {
+        border-bottom: 2px solid #1d9e75;
+        padding-bottom: 2px;
+        color: #1d9e75;
       }
     }
   }

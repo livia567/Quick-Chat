@@ -102,7 +102,11 @@
             <!-- 重置按钮 -->
             <div class="action-buttons">
               <el-button @click="resetForm">重置</el-button>
-              <el-button type="primary" @click="submit">提交记录</el-button>
+              <el-button
+                style="background: #1d9e75; border-color: #1d9e75; color: #fff"
+                @click="submit"
+                >提交记录</el-button
+              >
             </div>
           </div>
         </div>

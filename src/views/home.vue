@@ -203,6 +203,11 @@ const features = [
       padding: 20px 32px;
       font-size: 20px;
       font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.5s;
+      &:hover {
+        transform: translateY(-4px);
+      }
     }
 
     .btn-ghost {
@@ -212,6 +217,11 @@ const features = [
       padding: 20px 32px;
       font-size: 20px;
       font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.5s;
+      &:hover {
+        transform: translateY(-4px);
+      }
     }
   }
 }

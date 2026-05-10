@@ -84,7 +84,7 @@
           <!-- submitForm(submitFormRef)获取el-form组件实例 -->
           <el-button
             class="btn"
-            type="primary"
+            style="background: #1d9e75; border-color: #1d9e75; color: #fff"
             size="large"
             @click="submitForm(submitFormRef)"
             >注册</el-button

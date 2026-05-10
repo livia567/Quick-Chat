@@ -3,7 +3,7 @@
     <div class="title">
       <div class="back-home">
         <el-icon><Back /></el-icon>
-        <span>返回首页</span>
+        <span @click="router.push('/')"> 返回首页</span>
       </div>
       <div class="title-text">
         <h2>登录您的账户</h2>
@@ -38,7 +38,7 @@
         <el-button
           class="btn"
           size="large"
-          type="primary"
+          style="background: #1d9e75; border-color: #1d9e75; color: #fff"
           @click="submitForm(ruleFormRef)"
           >登录</el-button
         >
@@ -109,6 +109,11 @@ const submitForm = async (formEl) => {
   .title {
     .back-home {
       margin-bottom: 60px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      &:hover {
+        color: #1d9e75;
+      }
     }
     .title-text {
       text-align: center;
